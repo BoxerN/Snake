@@ -1,0 +1,504 @@
+<html>
+
+    <head>
+        <title>Snake!</title>
+        <meta charset="utf-8">
+        <!--Import Bootstrap-->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <style>
+            body {
+                overflow-y:hidden;
+            }
+            #InGameMenu {
+                height:7%;
+                width:100%;
+                display:block;
+                background:#999999;
+            }
+            #canvas {
+                display:block;
+            }
+            #Reload {
+                display:inline;
+            }
+            #hi {
+                width: 50;
+            }
+        </style>
+    </head>
+
+
+
+    <body onload="resizeCanvas();" scrolling="no" style="overflow: hidden">
+        <canvas id="canvas" ></canvas>
+        <div id="InGameMenu">
+            <button type="button" class="btn btn-warning active" id="Reload" onclick="ReloadPage();">Restart Game</button>
+            <button type="button" class="btn btn-danger active" id="Pause" onclick="PauseCheck();">Pause Game</button>
+            <button type="button" class="btn btn-success active" id="NameC" onclick="changeName();">Change Name</button>
+             <button type="button" class="btn btn-info active" id="color" onclick="changeColor();">Change Color</button>
+
+        <script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+        </div>
+
+
+
+        <script>
+    
+ function resizeCanvas() {
+    var canvs = document.getElementById("canvas");
+    canvs.width = window.innerWidth;
+    canvs.height = window.innerHeight * 0.94;
+}
+                
+                
+ localStorage.setItem("color", "Lime");
+
+
+                
+        
+        
+            var x = document.getElementById("myAudio");
+
+            function playAudio() {
+                x.play();
+            }
+
+            function pauseAudio() {
+                x.pause();
+            }
+
+            function ToMenu() {
+                if (ExitButt.className === "btn btn-danger disabled") {
+                    return;
+                } else {
+                    window.location = "snakemenu.html"
+                }
+            }
+             //The gameover Factor (F stands for factor)
+            var GameOverF = false;
+             // The pause var
+            var GameToggle = true;
+             //Get the Menu Buttons
+            var ReloadButt = document.getElementById("Reload");
+            var ExitButt = document.getElementById("Exit");
+            var PauseButt = document.getElementById("Pause");
+
+             // Set up canvas
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+
+             // Get the width and height from the canvas element
+            var width = window.innerWidth;
+            var height = window.innerHeight * 0.94;
+
+             // Work out the width and height in blocks
+            var blockSize = 10;
+            var widthInBlocks = width / blockSize;
+            var heightInBlocks = height / blockSize;
+
+             // Set score to 0
+            var score = 0;
+            var level = 1;
+            
+            
+            // Change color function
+            function changeColor() {
+                var color = prompt("Enter a valid color. Reccomended Color: Lime." + " Warning: If color is not valid will turn black")
+                localStorage.setItem("color", color);
+            }
+
+             //Make sure the Pause button is enabled before running the corresponding code
+
+            function PauseCheck() {
+                if (PauseButt.className === "btn btn-danger active") {
+                    TogglePause();
+                    PauseButt.className === "btn btn-success active"
+                } else {
+                    return;
+                }
+            }
+             //Check for pauses
+
+            function TogglePause() {
+                if (playing === true) {
+                    PauseButt.innerText = "Resume Game";
+                    playing = false;
+                    return;
+                }
+                if (playing === false) {
+                    PauseButt.innerText = "Pause Game";
+                    playing = true;
+                    gameLoop();
+                    return;
+                }
+
+            }
+
+             //Reload the page depending on what the class says
+
+            function ReloadPage() {
+                 window.location.reload();
+            }
+             // Draw the border
+            var drawBorder = function() {
+                ctx.fillStyle = "Gray";
+                ctx.fillRect(0, 0,  window.innerWidth, blockSize);
+                ctx.fillRect(0, height - blockSize,  window.innerWidth, blockSize);
+                ctx.fillRect(0, 0, blockSize, height);
+                ctx.fillRect( window.innerWidth - blockSize, 0, blockSize, height);
+            };
+
+             // Draw the score in the top-left corner
+            var drawScore = function() {
+                ctx.font = "20px Courier";
+                ctx.fillStyle = "Black";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText("Score: " + score, blockSize, blockSize);
+            };
+
+
+            function CompareScores() {
+                if (localStorage.getItem("high") === null) {
+                    localStorage.setItem("high", score);
+                    return true;
+                } else {
+                   var high = localStorage.getItem("high");
+                   if (score < high) {
+                       //localStorage.setItem("high", score);
+                       return false;
+                   } else {
+                       localStorage.setItem("high", score);
+                       return true;
+                   }
+                }
+            }
+             // Clear the interval and display Game Over text
+            var gameOver = function() {
+                 apple.position = new Block(10000, 100000);
+                 apple2.position = new Block(10000, 100000);
+                 apple3.position = new Block(10000, 100000);
+      
+                PauseButt.className = "btn btn-primary disabled";
+                GameOverF = true;
+              
+                playing = false;
+                ctx.font = "60px Courier";
+                ctx.fillStyle = "Black";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Game Over! You're Score Was... " + score, width / 2, height / 2);
+            };
+            function changeName() {
+                var name = prompt("Please enter a username");
+                localStorage.setItem("name", name);
+            }
+            
+            var sdrawScore = function() {
+                ctx.font = "20px Courier";
+                ctx.fillStyle = "Black";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText("Username: " +  localStorage.getItem("name"), 130, 10);
+            };
+             var drawHighscore = function() {
+                ctx.font = "20px Courier";
+                ctx.fillStyle = "Black";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText("High Score: " +  localStorage.getItem("high"), 10, 40);
+            };
+
+
+             // Draw a circle (using the function from Chapter 14)
+            var circle = function(x, y, radius, fillCircle) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+                if (fillCircle) {
+                    ctx.fill();
+                } else {
+                    ctx.stroke();
+                }
+            };
+
+             // The Block constructor
+            var Block = function(col, row) {
+                this.col = col;
+                this.row = row;
+            };
+
+             // Draw a square at the block's location
+            Block.prototype.drawSquare = function(color) {
+                var x = this.col * blockSize;
+                var y = this.row * blockSize;
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, blockSize, blockSize);
+            };
+
+             // Draw a circle at the block's location
+            Block.prototype.drawCircle = function(color) {
+                var centerX = this.col * blockSize + blockSize / 2;
+                var centerY = this.row * blockSize + blockSize / 2;
+                ctx.fillStyle = color;
+                circle(centerX, centerY, blockSize / 2, true);
+            };
+
+             // Check if this block is in the same location as another block
+            Block.prototype.equal = function(otherBlock) {
+                return this.col === otherBlock.col && this.row === otherBlock.row;
+            };
+
+             // The Snake constructor
+            var Snake = function() {
+                this.segments = [
+                    new Block(3, 1),
+                    new Block(2, 1),
+                    new Block(1, 1)
+                ];
+
+                this.direction = "right";
+                this.nextDirection = "right";
+            };
+
+             // Draw a square for each segment of the snake's body
+            Snake.prototype.draw = function() {
+                this.segments[0].drawSquare("Black");
+                var isEvenSegment = false;
+
+                for (var i = 1; i < this.segments.length; i++) {
+                    if (isEvenSegment) {
+                        this.segments[i].drawSquare(localStorage.getItem("color"));
+                    } else {
+                        this.segments[i].drawSquare(localStorage.getItem("color"));
+                    }
+
+                    isEvenSegment = !isEvenSegment; // Next segment will be odd
+                }
+            };
+
+             // Create a new head and add it to the beginning of
+             // the snake to move the snake in its current direction
+            Snake.prototype.move = function() {
+                var head = this.segments[0];
+                var newHead;
+
+                this.direction = this.nextDirection;
+
+                if (this.direction === "right") {
+                    newHead = new Block(head.col + 1, head.row);
+                } else if (this.direction === "down") {
+                    newHead = new Block(head.col, head.row + 1);
+                } else if (this.direction === "left") {
+                    newHead = new Block(head.col - 1, head.row);
+                } else if (this.direction === "up") {
+                    newHead = new Block(head.col, head.row - 1);
+                }
+
+                if (this.checkCollision(newHead)) {
+                    gameOver();
+                    return;
+                }
+
+                this.segments.unshift(newHead);
+
+                if (newHead.equal(apple.position)) {
+                    score++;
+                
+                    animationTime -= 1.5;
+                    apple.move(this.segments);
+                    apple2.move(this.segments);
+                    apple3.move(this.segments);
+                } else if (newHead.equal(apple2.position) || newHead.equal(apple3.position)) {
+                   
+                    gameOver();
+                } else {
+                 
+                this.segments.pop();
+                }
+            };
+
+
+             // Check if the snake's new head has collided with the wall or itself
+            Snake.prototype.checkCollision = function(head) {
+                var collideWallWidth = 1336;
+                var leftCollision = (head.col === 0);
+                var topCollision = (head.row === 0);
+                var rightCollision = (head.col >= (window.innerWidth / 10) - 1);
+                var bottomCollision = (head.row >= ((window.innerHeight * 0.94)/10) - 1);
+
+                var wallCollision = leftCollision || topCollision || rightCollision || bottomCollision;
+
+                var selfCollision = false;
+
+                for (var i = 0; i < this.segments.length; i++) {
+                    if (head.equal(this.segments[i])) {
+                        selfCollision = true;
+                    }
+                }
+
+                return wallCollision || selfCollision;
+            };
+
+             // Set the snake's next direction based on the keyboard
+            Snake.prototype.setDirection = function(newDirection) {
+                if (this.direction === "up" && newDirection === "down") {
+                    return;
+                } else if (this.direction === "right" && newDirection === "left") {
+                    return;
+                } else if (this.direction === "down" && newDirection === "up") {
+                    return;
+                } else if (this.direction === "left" && newDirection === "right") {
+                    return;
+                }
+
+                this.nextDirection = newDirection;
+            };
+
+             // The Apple constructor
+            var Apple = function() {
+                this.position = new Block(10, 10);
+            };
+            var Apple2 = function() {
+                this.position = new Block(20, 20);
+            };
+             var Apple3 = function() {
+                this.position = new Block(30, 30);
+            };
+
+
+             // Draw a circle at the apple's location
+            Apple.prototype.draw = function() {
+                this.position.drawCircle("Red");
+            };
+            
+            Apple2.prototype.draw = function() {
+                this.position.drawCircle("Black");
+            };
+             Apple3.prototype.draw = function() {
+                this.position.drawCircle("Black");
+            };
+
+
+
+             // Move the apple to a new random location
+            Apple.prototype.move = function(occupiedBlocks) {
+                var randomCol = Math.floor(Math.random() * (widthInBlocks - 3)) + 1;
+                var randomRow = Math.floor(Math.random() * (heightInBlocks - 3)) + 1;
+                this.position = new Block(randomCol, randomRow);
+
+                // Check to see if apple has been moved to a block currently occupied by the snake
+                for (var i = 0; i < occupiedBlocks.length; i++) {
+                    if (this.position.equal(occupiedBlocks[i])) {
+                        this.move(occupiedBlocks); // Call the move method again
+                        return;
+                    }
+                }
+            };
+            
+            Apple2.prototype.move = function(occupiedBlocks) {
+                var randomCol = Math.floor(Math.random() * (widthInBlocks - 3)) + 1;
+                var randomRow = Math.floor(Math.random() * (heightInBlocks - 3)) + 1;
+                this.position = new Block(randomCol, randomRow);
+
+                // Check to see if apple has been moved to a block currently occupied by the snake
+                for (var i = 0; i < occupiedBlocks.length; i++) {
+                    if (this.position.equal(occupiedBlocks[i])) {
+                        this.move(occupiedBlocks); // Call the move method again
+                        return;
+                    }
+                }
+            };
+             Apple3.prototype.move = function(occupiedBlocks) {
+                var randomCol = Math.floor(Math.random() * (widthInBlocks - 3)) + 1;
+                var randomRow = Math.floor(Math.random() * (heightInBlocks - 3)) + 1;
+                this.position = new Block(randomCol, randomRow);
+
+                // Check to see if apple has been moved to a block currently occupied by the snake
+                for (var i = 0; i < occupiedBlocks.length; i++) {
+                    if (this.position.equal(occupiedBlocks[i])) {
+                        this.move(occupiedBlocks); // Call the move method again
+                        return;
+                    }
+                }
+            };
+        
+        
+             // Create the snake and apple objects
+            var snake = new Snake();
+            var apple = new Apple();
+            var apple2 = new Apple2();
+            var apple3 = new Apple3();
+            var usenameDefault = "Snake Player";
+            apple2.position = new Block(10000, 100000);
+            apple3.position = new Block(100000, 1090000);
+
+            
+            var playing = true;
+            var animationTime = 100;
+
+             // Create a game loop function, which will call itself using setTimeout
+            var gameLoop = function() {
+              
+                if (localStorage.getItem("name") === null) {
+                    localStorage.setItem("name", usenameDefault);
+                    
+                } else {
+                
+                }
+                
+                ctx.clearRect(0, 0, width, height);
+                drawScore();
+                snake.move();
+                snake.draw();
+                apple.draw();
+                if(score>19) {
+                apple2.draw();
+                }
+                if(score>34) {
+                apple3.draw();
+                }
+                drawBorder();
+                sdrawScore();
+                
+                if (CompareScores()) {
+                ctx.font = "20px Courier";
+                ctx.fillStyle = "Black";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText("NEW HIGH SCORE!", 10, 70);
+                }
+                drawHighscore();
+
+                // This is set to false by the gameOver function
+                if (playing) {
+                    setTimeout(gameLoop, animationTime);
+                }
+            };
+
+             // Start the game loop
+            gameLoop();
+
+             // Convert keycodes to directions
+            var directions = {
+                37: "left",
+                38: "up",
+                39: "right",
+                40: "down"
+            };
+
+             // The keydown handler for handling direction key presses
+            $("body").keydown(function(event) {
+                var newDirection = directions[event.keyCode];
+                if (newDirection !== undefined) {
+                    snake.setDirection(newDirection);
+                }
+            });
+        </script>
+
+    </body>
+
+</html>
